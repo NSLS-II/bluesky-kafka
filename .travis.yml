@@ -1,0 +1,75 @@
+language: python
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.cache/matplotlib
+
+matrix:
+  fast_finish: true
+  include:
+    - python: 3.5
+    - python: 3.6
+      #env: BUILD_DOCS=1
+    - python: nightly
+  allow_failures:
+    - python: nightly
+
+addons:
+  apt:
+    packages:
+    - libev-dev
+    - libsnappy-dev
+    - zlib1g-dev  # for librdkafka
+
+# start kafka
+before_script:
+    - export C_INCLUDE_PATH=$HOME/include:$C_INCLUDE_PATH
+    - export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
+    - export LD_LIBRARY_PATH=$HOME/lib:$LD_LIBRARY_PATH
+    - export CFLAGS="-coverage"
+    - TEMPFILE=`tempfile`
+    - python -m pykafka.test.kafka_instance 3 --kafka-version $KAFKA_VERSION --download-dir $KAFKA_BIN --export-hosts $TEMPFILE &
+    - while true; do sleep 1; echo "Waiting for cluster..."; if [[ `grep ZOOKEEPER $TEMPFILE` ]]; then break; fi; done
+    - export `grep BROKERS $TEMPFILE`
+    - export `grep BROKERS_SSL $TEMPFILE`
+    - export `grep ZOOKEEPER $TEMPFILE`
+
+before_install:
+  # might be needed for graphics?
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+  - "export DISPLAY=:99.0"
+
+install:
+  - export GIT_FULL_HASH=`git rev-parse HEAD`
+  - pip install -r requirements.txt
+  - pip install -r dev-requirements.txt
+  - pip install codecov
+  - python setup.py install
+  # Need to clean the python build directory (and other cruft) or pytest is
+  # going to find the build directory and get confused why there are two sets
+  # of every test file
+  - git clean -xfd
+
+  # setup the kafka cluster
+  - pip install codecov kazoo tox testinstances
+  - wget https://github.com/edenhill/librdkafka/archive/0.9.1.tar.gz
+  - tar -xzf 0.9.1.tar.gz
+  - cd librdkafka-0.9.1/ && ./configure --prefix=$HOME
+  - make -j 2 && make -j 2 install && cd -
+
+  # install pykafka
+  - git clone https://www.github.com/Parsely/pykafka
+  - pushd pykafka; pip install -e .
+  # setup the kafka cluster
+  - python -m pykafka.test.kafka_instance 3 --export-hosts $TEMPFILE
+
+script:
+  - coverage run run_tests.py
+  - coverage report -m
+  - set -e
+  # Build docs.
+
+after_success:
+  - codecov

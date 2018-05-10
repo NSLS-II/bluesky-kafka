@@ -30,7 +30,7 @@ before_script:
     - export LD_LIBRARY_PATH=$HOME/lib:$LD_LIBRARY_PATH
     - export CFLAGS="-coverage"
     - TEMPFILE=`tempfile`
-    - python -m pykafka.test.kafka_instance 3 --kafka-version $KAFKA_VERSION --download-dir $KAFKA_BIN --export-hosts $TEMPFILE &
+    - python -m pykafka.test.kafka_instance 3 --export-hosts $TEMPFILE &
     - while true; do sleep 1; echo "Waiting for cluster..."; if [[ `grep ZOOKEEPER $TEMPFILE` ]]; then break; fi; done
     - export `grep BROKERS $TEMPFILE`
     - export `grep BROKERS_SSL $TEMPFILE`

@@ -1,0 +1,4 @@
+coverage
+bluesky
+databroker
+kafka

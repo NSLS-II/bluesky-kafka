@@ -60,7 +60,7 @@ install:
   - export `grep BROKERS $TEMPFILE`
   - export `grep BROKERS_SSL $TEMPFILE`
   - export `grep ZOOKEEPER $TEMPFILE`
-  - echo $TEMPFILE
+  - cat $TEMPFILE
 
 # start kafka
 #before_script:

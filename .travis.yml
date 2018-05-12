@@ -56,7 +56,7 @@ install:
   # of every test file
   - git clean -xfd
   # setup the kafka cluster
-  - python -m pykafka.test.kafka_instance 3 --export-hosts $TEMPFILE
+  - python -m pykafka.test.kafka_instance 3 --export-hosts $TEMPFILE &
   - while true; do sleep 1; echo "Waiting for cluster..."; if [[ `grep ZOOKEEPER $TEMPFILE` ]]; then break; fi; done
   - export `grep BROKERS $TEMPFILE`
   - export `grep BROKERS_SSL $TEMPFILE`

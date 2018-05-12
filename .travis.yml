@@ -44,8 +44,7 @@ before_install:
 install:
   - export GIT_FULL_HASH=`git rev-parse HEAD`
   - pip install codecov kazoo tox testinstances
-  - conda install -c conda-forge librdkafka
-  - conda install -c conda-forge pykafka
+  - conda install librdkafka pykafka pytest
   - pip install codecov kazoo tox testinstances
   - pip install -r requirements.txt
   - pip install -r dev-requirements.txt

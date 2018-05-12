@@ -3,5 +3,3 @@ channels:
 - conda-forge
 - defaults
 show_channel_urls: true
-track_features:
-- nomkl
